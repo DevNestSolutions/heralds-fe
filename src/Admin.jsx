@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import './index.css';
+import './admin.css';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -287,21 +288,22 @@ function Admin() {
                                 </div>
                                 <div className="control-group">
                                     <label>Product Image</label>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                    <div className="upload-container">
                                         {productForm.images[0] && (
                                             <img
                                                 src={productForm.images[0]}
                                                 alt="Preview"
-                                                style={{ width: '100px', height: '100px', objectFit: 'cover', borderRadius: '8px', border: '2px solid #eee' }}
+                                                className="upload-preview-img"
                                             />
                                         )}
-                                        <input
-                                            type="file"
-                                            className="control-input"
-                                            onChange={handleImageUpload}
-                                            style={{ fontSize: '0.8rem' }}
-                                        />
-                                        {isUploading && <small style={{ color: 'var(--accent)' }}>Uploading to Cloudinary...</small>}
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                                            <input
+                                                type="file"
+                                                className="upload-input-file"
+                                                onChange={handleImageUpload}
+                                            />
+                                            {isUploading && <small style={{ color: '#D4AF37' }}>Uploading to Cloudinary...</small>}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -322,7 +324,7 @@ function Admin() {
                                 />
                             </div>
 
-                            <div style={{ display: 'flex', gap: '2rem', marginTop: '1.2rem' }}>
+                            <div className="checkbox-row">
                                 <label className="custom-checkbox">
                                     <input type="checkbox" checked={productForm.isNew} onChange={(e) => setProductForm({ ...productForm, isNew: e.target.checked })} />
                                     New Arrival
