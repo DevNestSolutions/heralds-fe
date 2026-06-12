@@ -80,12 +80,18 @@ function App() {
 
 
   const [isScrolled, setIsScrolled] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 50);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Close mobile nav on route change
+  useEffect(() => {
+    setMobileNavOpen(false);
+  }, [location.pathname]);
 
   // Home Screen Auto Carousel Refined
   const carouselOffset = 45; // percentage width of one slide
@@ -233,19 +239,37 @@ function App() {
   // --- RENDERING HELPERS ---
 
   const Navbar = () => (
-    <nav className={`glass-nav ${isScrolled ? 'scrolled' : ''}`}>
-      <a href="#" className="nav-logo" onClick={(e) => { e.preventDefault(); navToHome(); }}>
-        <img src={new URL('./assets/logo.png', import.meta.url).href} alt="Heralds Logo" className="logo-img" />
-        <span style={{ marginLeft: '12px' }}>HERALDS</span>
-      </a>
-      <div className="nav-links">
+    <>
+      <nav className={`glass-nav ${isScrolled ? 'scrolled' : ''}`}>
+        <a href="#" className="nav-logo" onClick={(e) => { e.preventDefault(); navToHome(); }}>
+          <img src={new URL('./assets/logo.png', import.meta.url).href} alt="Heralds Logo" className="logo-img" />
+          <span style={{ marginLeft: '12px' }}>HERALDS</span>
+        </a>
+        <div className="nav-links">
+          <a href="#" onClick={(e) => { e.preventDefault(); navToHome(); }} className={location.pathname === '/' ? 'active-link' : ''}>Home</a>
+          <a href="#" onClick={(e) => { e.preventDefault(); navToProducts(); }} className={location.pathname === '/products' ? 'active-link' : ''}>Products</a>
+          <a href="#" onClick={(e) => { e.preventDefault(); navToCustomizable(); }} className={location.pathname === '/customizable' ? 'active-link' : ''}>Customizable</a>
+          <a href="#" onClick={(e) => { e.preventDefault(); navToAbout(); }} className={location.pathname === '/about' ? 'active-link' : ''}>About</a>
+          <a href="#" onClick={(e) => { e.preventDefault(); navToContact(); }} className={location.pathname === '/contact' ? 'active-link' : ''}>Contact</a>
+        </div>
+        <button
+          className={`hamburger-btn ${mobileNavOpen ? 'open' : ''}`}
+          onClick={() => setMobileNavOpen(o => !o)}
+          aria-label="Toggle menu"
+        >
+          <span /><span /><span />
+        </button>
+      </nav>
+
+      {/* Mobile Navigation Drawer */}
+      <div className={`mobile-nav-drawer ${mobileNavOpen ? 'open' : ''}`}>
         <a href="#" onClick={(e) => { e.preventDefault(); navToHome(); }} className={location.pathname === '/' ? 'active-link' : ''}>Home</a>
         <a href="#" onClick={(e) => { e.preventDefault(); navToProducts(); }} className={location.pathname === '/products' ? 'active-link' : ''}>Products</a>
         <a href="#" onClick={(e) => { e.preventDefault(); navToCustomizable(); }} className={location.pathname === '/customizable' ? 'active-link' : ''}>Customizable</a>
         <a href="#" onClick={(e) => { e.preventDefault(); navToAbout(); }} className={location.pathname === '/about' ? 'active-link' : ''}>About</a>
         <a href="#" onClick={(e) => { e.preventDefault(); navToContact(); }} className={location.pathname === '/contact' ? 'active-link' : ''}>Contact</a>
       </div>
-    </nav>
+    </>
   );
 
   const ProductCard = ({ product }) => (
@@ -288,15 +312,15 @@ function App() {
             <h2 className="details-name">{product.name}</h2>
             <div className="details-price">Rs. {product.price}</div>
             <p className="details-description">{product.description}</p>
-            <div style={{ display: 'flex', gap: '15px', marginBottom: '3rem' }}>
+            <div style={{ display: 'flex', gap: '10px', marginBottom: '2rem', flexWrap: 'wrap' }}>
               {product.styles && product.styles.map(s => (
                 <span key={s} className="badge" style={{ position: 'static', background: '#eee', color: '#333' }}>{s}</span>
               ))}
             </div>
             <div className="details-actions">
-              <button className="btn-whatsapp" style={{ flex: 1 }} onClick={() => handleOrderWhatsApp(product.name)}>Order via WhatsApp</button>
+              <button className="btn-whatsapp" onClick={() => handleOrderWhatsApp(product.name)}>Order via WhatsApp</button>
               {product.customizable && (
-                <button className="btn-primary" style={{ flex: 1 }} onClick={() => navigate('/customizable')}>AI Custom Build</button>
+                <button className="btn-primary" onClick={() => navigate('/customizable')}>AI Custom Build</button>
               )}
             </div>
           </div>
@@ -460,15 +484,15 @@ function App() {
                   style={{ width: '100%', height: 'auto', boxShadow: '0 30px 60px rgba(0,0,0,0.1)' }}
                 />
               </div>
-              <div className="about-text-side">
-                <h2 style={{ fontSize: '3rem', fontWeight: '900', marginBottom: '2.5rem', lineHeight: '1.1' }}>PRECISION IN EVERY FIBER</h2>
-                <p style={{ fontSize: '1.2rem', color: '#333', marginBottom: '2rem', lineHeight: '1.8' }}>
+          <div className="about-text-side">
+                <h2 style={{ fontSize: 'clamp(1.8rem, 5vw, 3rem)', fontWeight: '900', marginBottom: '2.5rem', lineHeight: '1.1' }}>PRECISION IN EVERY FIBER</h2>
+                <p style={{ fontSize: '1.1rem', color: '#333', marginBottom: '2rem', lineHeight: '1.8' }}>
                   At Heralds, we don't just sell clothing; we architect confidence. Our journey is rooted in classical tailoring, perfected for the modern man who requires seamless, powerful elegance.
                 </p>
                 <p style={{ color: '#666', lineHeight: '1.8', marginBottom: '3rem' }}>
                   Every piece in our collection is a testament to the skill of our artisans. We source the world's most resilient cottons to ensure that your Heralds garment is as enduring as it is elegant.
                 </p>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '1.5rem' }}>
                   <div style={{ borderTop: '2px solid var(--accent)', paddingTop: '1.5rem' }}>
                     <span style={{ fontWeight: '800', display: 'block', marginBottom: '0.5rem' }}>01. BESPOKE ORIGINS</span>
                     <p style={{ fontSize: '0.9rem', opacity: 0.7 }}>Inspired by classical tailoring heritage.</p>
@@ -486,37 +510,37 @@ function App() {
         <Route path="/contact" element={
           <main className="container fade-in" style={{ paddingTop: '150px' }}>
             <h1 className="section-title">GET IN TOUCH</h1>
-            <div className="details-grid" style={{ marginTop: '4rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(340px, 100%), 1fr))', gap: '3rem', marginTop: '4rem' }}>
               <div className="contact-info">
-                <h2 style={{ fontSize: '2rem', marginBottom: '2rem' }}>VISIT OUR ATELIER</h2>
-                <p style={{ marginBottom: '2rem', fontSize: '1.2rem' }}>No21, ritrit park weherahena road kekanadura</p>
+                <h2 style={{ fontSize: 'clamp(1.4rem, 4vw, 2rem)', marginBottom: '2rem' }}>VISIT OUR ATELIER</h2>
+                <p style={{ marginBottom: '2rem', fontSize: '1.1rem' }}>No21, ritrit park weherahena road kekanadura</p>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-                  <div style={{ display: 'flex', gap: '15px' }}>
+                  <div style={{ display: 'flex', gap: '15px', alignItems: 'flex-start' }}>
                     <span style={{ fontSize: '1.5rem' }}>📞</span>
                     <div>
                       <p style={{ fontWeight: '700' }}>FRONT DESK</p>
                       <p>+94 70 570 0616</p>
                     </div>
                   </div>
-                  <div style={{ display: 'flex', gap: '15px' }}>
+                  <div style={{ display: 'flex', gap: '15px', alignItems: 'flex-start' }}>
                     <span style={{ fontSize: '1.5rem' }}>✉️</span>
                     <div>
                       <p style={{ fontWeight: '700' }}>INQUIRIES</p>
-                      <p>heraldsclothing@gmail.com</p>
+                      <p style={{ wordBreak: 'break-word' }}>heraldsclothing@gmail.com</p>
                     </div>
                   </div>
                 </div>
 
                 <div style={{ marginTop: '3rem' }}>
                   <h4 style={{ marginBottom: '1.5rem' }}>FOLLOW THE JOURNEY</h4>
-                  <div style={{ display: 'flex', gap: '1rem' }}>
+                  <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
                     <a href="https://www.facebook.com/profile.php?id=61566508127577" target="_blank" className="btn-secondary" style={{ border: '1px solid #eee' }}>Facebook</a>
                     <a href="https://www.tiktok.com/@heraldsclothing" target="_blank" className="btn-secondary" style={{ border: '1px solid #eee' }}>TikTok</a>
                   </div>
                 </div>
               </div>
-              <div style={{ background: '#f9f9f9', padding: '4rem' }}>
+              <div style={{ background: '#f9f9f9', padding: 'clamp(1.5rem, 5vw, 4rem)' }}>
                 <form>
                   <h2 style={{ marginBottom: '2rem' }}>MESSAGE US</h2>
                   <div className="control-group"><label>NAME</label><input className="control-input" type="text" /></div>
@@ -527,7 +551,7 @@ function App() {
               </div>
             </div>
 
-            <div style={{ marginTop: '5rem', height: '400px', width: '100%', overflow: 'hidden', borderRadius: '4px' }}>
+            <div style={{ marginTop: '4rem', height: 'clamp(280px, 50vw, 400px)', width: '100%', overflow: 'hidden', borderRadius: '4px' }}>
               <iframe
                 title="Map"
                 width="100%"
@@ -569,7 +593,7 @@ function App() {
           <div style={{ textAlign: 'center' }}>
             <h2 className="footer-logo">HERALDS CLOTHING</h2>
             <p style={{ letterSpacing: '4px', opacity: 0.6 }}>LEGACY IN EVERY STITCH</p>
-            <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'center', gap: '2rem' }}>
+            <div className="footer-social" style={{ marginTop: '2rem' }}>
               <a href="#" className="btn-secondary" style={{ color: 'white', borderColor: 'rgba(255,255,255,0.2)' }}>Instagram</a>
               <a href="#" className="btn-secondary" style={{ color: 'white', borderColor: 'rgba(255,255,255,0.2)' }}>Facebook</a>
             </div>
