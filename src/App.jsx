@@ -23,6 +23,111 @@ const SHIRT_COLORS = [
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
+const Navbar = ({
+  isScrolled,
+  mobileNavOpen,
+  setMobileNavOpen,
+  pathname,
+  navToHome,
+  navToProducts,
+  navToCustomizable,
+  navToAbout,
+  navToContact
+}) => {
+  const logoUrl = new URL('./assets/logo.png', import.meta.url).href;
+  return (
+    <>
+      <nav className={`glass-nav ${isScrolled ? 'scrolled' : ''}`}>
+        <a href="#" className="nav-logo" onClick={(e) => { e.preventDefault(); navToHome(); }}>
+          <img src={logoUrl} alt="Heralds Logo" className="logo-img" />
+          <span style={{ marginLeft: '12px' }}>HERALDS</span>
+        </a>
+        <div className="nav-links">
+          <a href="#" onClick={(e) => { e.preventDefault(); navToHome(); }} className={pathname === '/' ? 'active-link' : ''}>Home</a>
+          <a href="#" onClick={(e) => { e.preventDefault(); navToProducts(); }} className={pathname === '/products' ? 'active-link' : ''}>Products</a>
+          <a href="#" onClick={(e) => { e.preventDefault(); navToCustomizable(); }} className={pathname === '/customizable' ? 'active-link' : ''}>Customizable</a>
+          <a href="#" onClick={(e) => { e.preventDefault(); navToAbout(); }} className={pathname === '/about' ? 'active-link' : ''}>About</a>
+          <a href="#" onClick={(e) => { e.preventDefault(); navToContact(); }} className={pathname === '/contact' ? 'active-link' : ''}>Contact</a>
+        </div>
+        <button
+          className={`hamburger-btn ${mobileNavOpen ? 'open' : ''}`}
+          onClick={() => setMobileNavOpen(o => !o)}
+          aria-label="Toggle menu"
+        >
+          <span /><span /><span />
+        </button>
+      </nav>
+
+      {/* Mobile Navigation Drawer */}
+      <div className={`mobile-nav-drawer ${mobileNavOpen ? 'open' : ''}`}>
+        <a href="#" onClick={(e) => { e.preventDefault(); navToHome(); }} className={pathname === '/' ? 'active-link' : ''}>Home</a>
+        <a href="#" onClick={(e) => { e.preventDefault(); navToProducts(); }} className={pathname === '/products' ? 'active-link' : ''}>Products</a>
+        <a href="#" onClick={(e) => { e.preventDefault(); navToCustomizable(); }} className={pathname === '/customizable' ? 'active-link' : ''}>Customizable</a>
+        <a href="#" onClick={(e) => { e.preventDefault(); navToAbout(); }} className={pathname === '/about' ? 'active-link' : ''}>About</a>
+        <a href="#" onClick={(e) => { e.preventDefault(); navToContact(); }} className={pathname === '/contact' ? 'active-link' : ''}>Contact</a>
+      </div>
+    </>
+  );
+};
+
+const ProductCard = ({ product, wishlist, toggleWishlist, showDetails }) => (
+  <div className="product-card slide-up" onClick={() => showDetails(product)}>
+    {product.isNew && <span className="badge">New Arrival</span>}
+    {product.isTrending && <span className="badge badge-trending">Trending</span>}
+
+    <button
+      className={`wishlist-btn ${wishlist.includes(product.id) ? 'active' : ''}`}
+      onClick={(e) => toggleWishlist(e, product.id)}
+    >
+      ♥
+    </button>
+
+    <div className="product-img-wrapper">
+      <img src={product.images[0]} alt={product.name} className="product-img" />
+    </div>
+    <div className="product-info">
+      <div className="product-category">{product.category}</div>
+      <h3 className="product-name">{product.name}</h3>
+      <div className="product-price">Rs. {product.price}</div>
+    </div>
+  </div>
+);
+
+const ProductDetails = ({ products, loading, handleOrderWhatsApp }) => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const product = products.find(p => p.id == id);
+  if (!product && !loading) return <main className="container" style={{ paddingTop: '200px', textAlign: 'center' }}><h2>Product not found</h2><button className="btn-secondary" onClick={() => navigate('/products')}>Back to Gallery</button></main>;
+  if (loading) return <div className="container" style={{ paddingTop: '200px', display: 'flex', justifyContent: 'center' }}><div className="spinner"></div></div>;
+
+  return (
+    <main className="container fade-in" style={{ paddingTop: '150px', paddingBottom: '5rem' }}>
+      <div className="details-grid">
+        <div className="details-images">
+          <img src={product.images[0]} alt={product.name} className="details-main-img" />
+        </div>
+        <div className="details-info">
+          <div className="product-category" style={{ fontSize: '1rem', marginBottom: '1rem' }}>{product.category}</div>
+          <h2 className="details-name">{product.name}</h2>
+          <div className="details-price">Rs. {product.price}</div>
+          <p className="details-description">{product.description}</p>
+          <div style={{ display: 'flex', gap: '10px', marginBottom: '2rem', flexWrap: 'wrap' }}>
+            {product.styles && product.styles.map(s => (
+              <span key={s} className="badge" style={{ position: 'static', background: '#eee', color: '#333' }}>{s}</span>
+            ))}
+          </div>
+          <div className="details-actions">
+            <button className="btn-whatsapp" onClick={() => handleOrderWhatsApp(product.name)}>Order via WhatsApp</button>
+            {product.customizable && (
+              <button className="btn-primary" onClick={() => navigate('/customizable')}>AI Custom Build</button>
+            )}
+          </div>
+        </div>
+      </div>
+    </main>
+  );
+};
+
 function App() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -236,102 +341,19 @@ function App() {
   };
 
 
-  // --- RENDERING HELPERS ---
-
-  const Navbar = () => (
-    <>
-      <nav className={`glass-nav ${isScrolled ? 'scrolled' : ''}`}>
-        <a href="#" className="nav-logo" onClick={(e) => { e.preventDefault(); navToHome(); }}>
-          <img src={new URL('./assets/logo.png', import.meta.url).href} alt="Heralds Logo" className="logo-img" />
-          <span style={{ marginLeft: '12px' }}>HERALDS</span>
-        </a>
-        <div className="nav-links">
-          <a href="#" onClick={(e) => { e.preventDefault(); navToHome(); }} className={location.pathname === '/' ? 'active-link' : ''}>Home</a>
-          <a href="#" onClick={(e) => { e.preventDefault(); navToProducts(); }} className={location.pathname === '/products' ? 'active-link' : ''}>Products</a>
-          <a href="#" onClick={(e) => { e.preventDefault(); navToCustomizable(); }} className={location.pathname === '/customizable' ? 'active-link' : ''}>Customizable</a>
-          <a href="#" onClick={(e) => { e.preventDefault(); navToAbout(); }} className={location.pathname === '/about' ? 'active-link' : ''}>About</a>
-          <a href="#" onClick={(e) => { e.preventDefault(); navToContact(); }} className={location.pathname === '/contact' ? 'active-link' : ''}>Contact</a>
-        </div>
-        <button
-          className={`hamburger-btn ${mobileNavOpen ? 'open' : ''}`}
-          onClick={() => setMobileNavOpen(o => !o)}
-          aria-label="Toggle menu"
-        >
-          <span /><span /><span />
-        </button>
-      </nav>
-
-      {/* Mobile Navigation Drawer */}
-      <div className={`mobile-nav-drawer ${mobileNavOpen ? 'open' : ''}`}>
-        <a href="#" onClick={(e) => { e.preventDefault(); navToHome(); }} className={location.pathname === '/' ? 'active-link' : ''}>Home</a>
-        <a href="#" onClick={(e) => { e.preventDefault(); navToProducts(); }} className={location.pathname === '/products' ? 'active-link' : ''}>Products</a>
-        <a href="#" onClick={(e) => { e.preventDefault(); navToCustomizable(); }} className={location.pathname === '/customizable' ? 'active-link' : ''}>Customizable</a>
-        <a href="#" onClick={(e) => { e.preventDefault(); navToAbout(); }} className={location.pathname === '/about' ? 'active-link' : ''}>About</a>
-        <a href="#" onClick={(e) => { e.preventDefault(); navToContact(); }} className={location.pathname === '/contact' ? 'active-link' : ''}>Contact</a>
-      </div>
-    </>
-  );
-
-  const ProductCard = ({ product }) => (
-    <div className="product-card slide-up" onClick={() => showDetails(product)}>
-      {product.isNew && <span className="badge">New Arrival</span>}
-      {product.isTrending && <span className="badge badge-trending">Trending</span>}
-
-      <button
-        className={`wishlist-btn ${wishlist.includes(product.id) ? 'active' : ''}`}
-        onClick={(e) => toggleWishlist(e, product.id)}
-      >
-        ♥
-      </button>
-
-      <div className="product-img-wrapper">
-        <img src={product.images[0]} alt={product.name} className="product-img" />
-      </div>
-      <div className="product-info">
-        <div className="product-category">{product.category}</div>
-        <h3 className="product-name">{product.name}</h3>
-        <div className="product-price">Rs. {product.price}</div>
-      </div>
-    </div>
-  );
-
-  const ProductDetails = () => {
-    const { id } = useParams();
-    const product = products.find(p => p.id == id);
-    if (!product && !loading) return <main className="container" style={{ paddingTop: '200px', textAlign: 'center' }}><h2>Product not found</h2><button className="btn-secondary" onClick={() => navigate('/products')}>Back to Gallery</button></main>;
-    if (loading) return <div className="container" style={{ paddingTop: '200px', display: 'flex', justifyContent: 'center' }}><div className="spinner"></div></div>;
-
-    return (
-      <main className="container fade-in" style={{ paddingTop: '150px', paddingBottom: '5rem' }}>
-        <div className="details-grid">
-          <div className="details-images">
-            <img src={product.images[0]} alt={product.name} className="details-main-img" />
-          </div>
-          <div className="details-info">
-            <div className="product-category" style={{ fontSize: '1rem', marginBottom: '1rem' }}>{product.category}</div>
-            <h2 className="details-name">{product.name}</h2>
-            <div className="details-price">Rs. {product.price}</div>
-            <p className="details-description">{product.description}</p>
-            <div style={{ display: 'flex', gap: '10px', marginBottom: '2rem', flexWrap: 'wrap' }}>
-              {product.styles && product.styles.map(s => (
-                <span key={s} className="badge" style={{ position: 'static', background: '#eee', color: '#333' }}>{s}</span>
-              ))}
-            </div>
-            <div className="details-actions">
-              <button className="btn-whatsapp" onClick={() => handleOrderWhatsApp(product.name)}>Order via WhatsApp</button>
-              {product.customizable && (
-                <button className="btn-primary" onClick={() => navigate('/customizable')}>AI Custom Build</button>
-              )}
-            </div>
-          </div>
-        </div>
-      </main>
-    );
-  };
-
   return (
     <>
-      <Navbar />
+      <Navbar
+        isScrolled={isScrolled}
+        mobileNavOpen={mobileNavOpen}
+        setMobileNavOpen={setMobileNavOpen}
+        pathname={location.pathname}
+        navToHome={navToHome}
+        navToProducts={navToProducts}
+        navToCustomizable={navToCustomizable}
+        navToAbout={navToAbout}
+        navToContact={navToContact}
+      />
 
       <Routes>
         <Route path="/" element={
@@ -370,7 +392,15 @@ function App() {
                   <div style={{ display: 'flex', justifyContent: 'center', padding: '4rem' }}><div className="spinner"></div></div>
                 ) : (
                   <div className="products-grid">
-                    {products.slice(0, 4).map(p => <ProductCard key={p.id} product={p} />)}
+                    {products.slice(0, 4).map(p => (
+                      <ProductCard
+                        key={p.id}
+                        product={p}
+                        wishlist={wishlist}
+                        toggleWishlist={toggleWishlist}
+                        showDetails={showDetails}
+                      />
+                    ))}
                   </div>
                 )}
               </div>
@@ -403,13 +433,27 @@ function App() {
               <p style={{ textAlign: 'center', color: '#999', margin: '5rem 0' }}>No pieces match your current filters.</p>
             ) : (
               <div className="products-grid">
-                {filteredProducts.map(p => <ProductCard key={p.id} product={p} />)}
+                {filteredProducts.map(p => (
+                  <ProductCard
+                    key={p.id}
+                    product={p}
+                    wishlist={wishlist}
+                    toggleWishlist={toggleWishlist}
+                    showDetails={showDetails}
+                  />
+                ))}
               </div>
             )}
           </main>
         } />
 
-        <Route path="/product/:id" element={<ProductDetails />} />
+        <Route path="/product/:id" element={
+          <ProductDetails
+            products={products}
+            loading={loading}
+            handleOrderWhatsApp={handleOrderWhatsApp}
+          />
+        } />
 
         <Route path="/customizable" element={
           <main className="container fade-in" style={{ paddingTop: '150px' }}>
