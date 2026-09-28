@@ -23,7 +23,8 @@ function Admin() {
         customizable: false,
         isNew: false,
         isTrending: false,
-        styles: []
+        styles: [],
+        colors: []
     });
 
     const [newCategory, setNewCategory] = useState('');
@@ -87,14 +88,14 @@ function Admin() {
         setProductForm({
             name: '', price: '', category: categories[0] || '',
             description: '', images: [''], customizable: false,
-            isNew: true, isTrending: false, styles: []
+            isNew: true, isTrending: false, styles: [], colors: []
         });
         setShowProductModal(true);
     };
 
     const openEditModal = (p) => {
         setEditingProduct(p);
-        setProductForm({ ...p });
+        setProductForm({ ...p, colors: p.colors || [] });
         setShowProductModal(true);
     };
 
@@ -124,6 +125,44 @@ function Admin() {
         } finally {
             setIsUploading(false);
         }
+    };
+
+    const handleColorImageUpload = async (e, colorIndex) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        setIsUploading(true);
+        const formData = new FormData();
+        formData.append('image', file);
+
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/admin/upload`, {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+            if (data.success) {
+                const newColors = [...productForm.colors];
+                newColors[colorIndex].image = data.url;
+                setProductForm({ ...productForm, colors: newColors });
+            } else {
+                alert('Upload failed: ' + data.error);
+            }
+        } catch (err) {
+            console.error('Upload Error:', err);
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
+    const addColorVariant = () => {
+        setProductForm({ ...productForm, colors: [...(productForm.colors || []), { name: '', image: '' }] });
+    };
+
+    const removeColorVariant = (index) => {
+        const newColors = [...productForm.colors];
+        newColors.splice(index, 1);
+        setProductForm({ ...productForm, colors: newColors });
     };
 
     const saveProduct = async (e) => {
@@ -322,6 +361,36 @@ function Admin() {
                                     value={productForm.styles.join(', ')}
                                     onChange={(e) => setProductForm({ ...productForm, styles: e.target.value.split(',').map(s => s.trim()) })}
                                 />
+                            </div>
+
+                            <div className="control-group" style={{ marginTop: '1.5rem' }}>
+                                <label>Product Colors (Variants)</label>
+                                {productForm.colors && productForm.colors.map((c, idx) => (
+                                    <div key={idx} style={{ display: 'flex', gap: '10px', marginBottom: '10px', alignItems: 'center' }}>
+                                        <input
+                                            type="text"
+                                            placeholder="Color Name (e.g. Black)"
+                                            className="control-input"
+                                            value={c.name}
+                                            onChange={(e) => {
+                                                const newColors = [...productForm.colors];
+                                                newColors[idx].name = e.target.value;
+                                                setProductForm({ ...productForm, colors: newColors });
+                                            }}
+                                            style={{ flex: 1 }}
+                                        />
+                                        <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                            {c.image && <img src={c.image} alt="preview" style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '4px' }} />}
+                                            <input
+                                                type="file"
+                                                className="upload-input-file"
+                                                onChange={(e) => handleColorImageUpload(e, idx)}
+                                            />
+                                        </div>
+                                        <button type="button" className="btn-icon delete" onClick={() => removeColorVariant(idx)}>🗑️</button>
+                                    </div>
+                                ))}
+                                <button type="button" className="btn-secondary small" onClick={addColorVariant} style={{ marginTop: '10px' }}>+ Add Color Variant</button>
                             </div>
 
                             <div className="checkbox-row">

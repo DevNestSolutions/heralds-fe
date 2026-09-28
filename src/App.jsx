@@ -97,27 +97,79 @@ const ProductDetails = ({ products, loading, handleOrderWhatsApp }) => {
   const { id } = useParams();
   const navigate = useNavigate();
   const product = products.find(p => p.id == id);
+
+  const [selectedColor, setSelectedColor] = useState(null);
+  const [selectedSize, setSelectedSize] = useState('M');
+
+  useEffect(() => {
+    if (product && product.colors && product.colors.length > 0) {
+      setSelectedColor(product.colors[0]);
+    } else {
+      setSelectedColor(null);
+    }
+  }, [product]);
+
   if (!product && !loading) return <main className="container" style={{ paddingTop: '200px', textAlign: 'center' }}><h2>Product not found</h2><button className="btn-secondary" onClick={() => navigate('/products')}>Back to Gallery</button></main>;
   if (loading) return <div className="container" style={{ paddingTop: '200px', display: 'flex', justifyContent: 'center' }}><div className="spinner"></div></div>;
+
+  const currentImage = selectedColor?.image || product.images[0];
+  const colorName = selectedColor?.name || 'Default';
 
   return (
     <main className="container fade-in" style={{ paddingTop: '150px', paddingBottom: '5rem' }}>
       <div className="details-grid">
         <div className="details-images">
-          <img src={product.images[0]} alt={product.name} className="details-main-img" />
+          <img src={currentImage} alt={product.name} className="details-main-img" />
         </div>
         <div className="details-info">
           <div className="product-category" style={{ fontSize: '1rem', marginBottom: '1rem' }}>{product.category}</div>
           <h2 className="details-name">{product.name}</h2>
           <div className="details-price">Rs. {product.price}</div>
           <p className="details-description">{product.description}</p>
+
+          {/* Color Selection */}
+          {product.colors && product.colors.length > 0 && (
+            <div style={{ marginBottom: '1.5rem' }}>
+              <h4 style={{ marginBottom: '10px' }}>Color</h4>
+              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                {product.colors.map(c => (
+                  <button 
+                    key={c.name}
+                    className={`btn-secondary ${selectedColor?.name === c.name ? 'active' : ''}`}
+                    onClick={() => setSelectedColor(c)}
+                    style={{ padding: '8px 15px', borderColor: selectedColor?.name === c.name ? 'var(--accent)' : '#eee', color: selectedColor?.name === c.name ? 'white' : '#333', background: selectedColor?.name === c.name ? 'var(--accent)' : 'transparent' }}
+                  >
+                    {c.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Size Selection */}
+          <div style={{ marginBottom: '1.5rem' }}>
+             <h4 style={{ marginBottom: '10px' }}>Size</h4>
+             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                {['S', 'M', 'L', 'XL', 'XXL'].map(sz => (
+                  <button 
+                    key={sz}
+                    className={`btn-secondary ${selectedSize === sz ? 'active' : ''}`}
+                    onClick={() => setSelectedSize(sz)}
+                    style={{ padding: '8px 15px', borderColor: selectedSize === sz ? 'var(--accent)' : '#eee', color: selectedSize === sz ? 'white' : '#333', background: selectedSize === sz ? 'var(--accent)' : 'transparent' }}
+                  >
+                    {sz}
+                  </button>
+                ))}
+             </div>
+          </div>
+
           <div style={{ display: 'flex', gap: '10px', marginBottom: '2rem', flexWrap: 'wrap' }}>
             {product.styles && product.styles.map(s => (
               <span key={s} className="badge" style={{ position: 'static', background: '#eee', color: '#333' }}>{s}</span>
             ))}
           </div>
           <div className="details-actions">
-            <button className="btn-whatsapp" onClick={() => handleOrderWhatsApp(product.name)}>Order via WhatsApp</button>
+            <button className="btn-whatsapp" onClick={() => handleOrderWhatsApp(product.name, colorName, selectedSize)}>Order via WhatsApp</button>
             {product.customizable && (
               <button className="btn-primary" onClick={() => navigate('/customizable')}>AI Custom Build</button>
             )}
@@ -263,8 +315,8 @@ function App() {
     setWishlist(prev => prev.includes(id) ? prev.filter(wid => wid !== id) : [...prev, id]);
   };
 
-  const handleOrderWhatsApp = (productName) => {
-    const text = encodeURIComponent(`Hi Heralds Clothing! I would like to order the ${productName}.`);
+  const handleOrderWhatsApp = (productName, color = 'Default', size = 'M') => {
+    const text = encodeURIComponent(`Hi Heralds Clothing! I would like to order the ${productName}.\nColor: ${color}\nSize: ${size}`);
     window.open(`https://wa.me/94705700616?text=${text}`, '_blank');
   };
 
