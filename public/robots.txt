@@ -1,4 +1,7 @@
 User-agent: *
 Allow: /
+Disallow: /admin
+Disallow: /admin/*
+Disallow: /api/admin/*
 
-Sitemap: https://heraldsclothing.com/sitemap.xml
+Sitemap: https://heralds-fe.vercel.app/sitemap.xml
